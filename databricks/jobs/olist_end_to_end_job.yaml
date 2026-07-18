@@ -1,0 +1,45 @@
+resources:
+  jobs:
+    Olist_End_to_End:
+      name: Olist End to End
+      tasks:
+        - task_key: postgre_to_bronze
+          pipeline_task:
+            pipeline_id: b429fa3c-df51-462a-9894-aa6bcbb7749b
+        - task_key: Postgres_to_bronze2
+          depends_on:
+            - task_key: postgre_to_bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/hien.thanh2711@gmail.com/Olist-lakehouse/notebooks/ingestion/postgres_dim_to_bronze
+            source: WORKSPACE
+        - task_key: API_to_bronze
+          depends_on:
+            - task_key: Postgres_to_bronze2
+          notebook_task:
+            notebook_path: /Workspace/Users/hien.thanh2711@gmail.com/Olist-lakehouse/notebooks/ingestion/API_holiday_to_bronze
+            source: WORKSPACE
+        - task_key: Blob_to_bronze
+          depends_on:
+            - task_key: API_to_bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/hien.thanh2711@gmail.com/Olist-lakehouse/notebooks/ingestion/blob_to_bronze
+            source: WORKSPACE
+        - task_key: Silver_to_gold
+          depends_on:
+            - task_key: Blob_to_bronze
+          pipeline_task:
+            pipeline_id: c8315cf8-fb3d-45f5-a093-e43329ec9886
+        - task_key: Olist_Analysis_dashboard
+          depends_on:
+            - task_key: Silver_to_gold
+          dashboard_task:
+            subscription: {}
+            dashboard_id: 01f181fecb0e14e29fcc289189ab345e
+      git_source:
+        git_url: https://github.com/hienhunghang/Olist-lakehouse
+        git_provider: gitHub
+        git_branch: main
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
+      help: This job orchestrates bronze ingestion, transformation, analytics, and dashboard publication.

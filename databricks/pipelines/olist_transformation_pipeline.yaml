@@ -1,0 +1,47 @@
+id: c8315cf8-fb3d-45f5-a093-e43329ec9886
+pipeline_type: WORKSPACE
+name: Olist_tranformation
+libraries:
+  - glob:
+      include: /Workspace/Users/hien.thanh2711@gmail.com/Olist-lakehouse/pipelines/bronze_to_silver/**
+  - glob:
+      include: /Workspace/Users/hien.thanh2711@gmail.com/Olist-lakehouse/pipelines/silver_to_gold/**
+schema: olist_silver
+continuous: false
+development: false
+photon: true
+channel: CURRENT
+catalog: olist_catalog
+serverless: true
+root_path: /Workspace/Users/hien.thanh2711@gmail.com/Olist-lakehouse
+resources:
+  pipelines:
+    pipeline_olist_postgres_to_bronze:
+      name: Olist_postgres_to_bronze
+      ingestion_definition:
+        connection_name: neo_postgres_olist_project
+        objects:
+          - table:
+              source_catalog: neondb
+              source_schema: public
+              source_table: orders
+              destination_catalog: olist_catalog
+              destination_schema: postgres_bronze
+              table_configuration:
+                query_based_connector_config:
+                  cursor_columns:
+                    - order_purchase_timestamp
+          - table:
+              source_catalog: neondb
+              source_schema: public
+              source_table: reviews
+              destination_catalog: olist_catalog
+              destination_schema: postgres_bronze
+              table_configuration:
+                query_based_connector_config:
+                  cursor_columns:
+                    - review_answer_timestamp
+        source_type: POSTGRESQL
+      schema: postgres_bronze
+      channel: PREVIEW
+      catalog: olist_catalog
